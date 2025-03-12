@@ -2,8 +2,9 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import NotificationSettings from '@/components/NotificationSettings';
+import DataSourcesSettings from '@/components/DataSourcesSettings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, RefreshCw, Server } from 'lucide-react';
+import { Bell, RefreshCw, Server, Rss } from 'lucide-react';
 
 const Settings: React.FC = () => {
   return (
@@ -12,14 +13,18 @@ const Settings: React.FC = () => {
         <h1 className="text-3xl font-bold tracking-tight mb-6">Settings</h1>
         
         <Tabs defaultValue="notifications" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               <span>Notifications</span>
             </TabsTrigger>
             <TabsTrigger value="data-sources" className="flex items-center gap-2">
-              <Server className="h-4 w-4" />
+              <Rss className="h-4 w-4" />
               <span>Data Sources</span>
+            </TabsTrigger>
+            <TabsTrigger value="default-sources" className="flex items-center gap-2">
+              <Server className="h-4 w-4" />
+              <span>Default Sources</span>
             </TabsTrigger>
             <TabsTrigger value="auto-refresh" className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
@@ -32,8 +37,12 @@ const Settings: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="data-sources">
+            <DataSourcesSettings />
+          </TabsContent>
+          
+          <TabsContent value="default-sources">
             <div className="glass-card p-6 space-y-6 animate-fade-in">
-              <h3 className="text-xl font-medium">Data Sources</h3>
+              <h3 className="text-xl font-medium">Default Data Sources</h3>
               <p className="text-muted-foreground">
                 RFP Harbor currently aggregates data from several public procurement sources 
                 focused on the ServiceNow ecosystem. Sources include government procurement 

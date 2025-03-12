@@ -1,15 +1,19 @@
 
 import { parseRssData, parseJsonData } from './dataParser';
-import { saveRfps } from './storage';
+import { saveRfps, getCustomDataSources } from './storage';
 import { RFP } from './types';
 
-// Sample RSS feeds for ServiceNow RFPs
-const RSS_SOURCES = [
+// Sample RSS feeds for ServiceNow RFPs (default sources)
+const DEFAULT_RSS_SOURCES = [
   { 
+    id: 'default-1',
+    name: 'ServiceNow RFPs',
     url: 'https://example.com/servicenow-rfps.xml', 
     type: 'rss'
   },
   { 
+    id: 'default-2',
+    name: 'ITSM Opportunities',
     url: 'https://example.com/itsm-opportunities.json', 
     type: 'json'
   }
@@ -131,18 +135,31 @@ export const fetchData = async (): Promise<RFP[]> => {
   try {
     console.log('Fetching RFP data from sources...');
     
+    // Get custom data sources
+    const customSources = getCustomDataSources();
+    
+    // Combine default and custom sources
+    const allSources = [...DEFAULT_RSS_SOURCES, ...customSources];
+    console.log('Data sources to fetch from:', allSources);
+    
     // In a real application, you would fetch from actual RSS/API endpoints
     // For demo purposes, we're using dummy data instead of actual fetching
     
     /* 
     // This would be the actual implementation
-    const promises = RSS_SOURCES.map(async (source) => {
-      const response = await fetch(source.url);
-      const data = await (source.type === 'rss' ? response.text() : response.json());
-      
-      return source.type === 'rss' 
-        ? parseRssData(data, source.url) 
-        : parseJsonData(data, source.url);
+    const promises = allSources.map(async (source) => {
+      try {
+        console.log(`Fetching from ${source.name}: ${source.url}`);
+        const response = await fetch(source.url);
+        const data = await (source.type === 'rss' ? response.text() : response.json());
+        
+        return source.type === 'rss' 
+          ? parseRssData(data, source.url) 
+          : parseJsonData(data, source.url);
+      } catch (sourceError) {
+        console.error(`Error fetching from ${source.name}:`, sourceError);
+        return [];
+      }
     });
     
     const results = await Promise.all(promises);
