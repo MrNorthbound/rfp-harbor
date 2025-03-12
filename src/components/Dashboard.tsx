@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { RFP } from '@/utils/types';
 import { fetchData } from '@/utils/dataFetcher';
-import { getAllRfps } from '@/utils/storage';
+import { getRfps } from '@/utils/storage';
 
 const Dashboard: React.FC = () => {
   const [rfps, setRfps] = useState<RFP[]>([]);
@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
     setIsLoading(true);
     try {
       // First try to get data from localStorage
-      const storedRfps = getAllRfps();
+      const storedRfps = getRfps();
       
       if (storedRfps.length > 0) {
         setRfps(storedRfps);
