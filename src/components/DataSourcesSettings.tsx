@@ -31,7 +31,7 @@ const DataSourcesSettings: React.FC = () => {
     }
   }, []);
 
-  const handleAddSource = () => {
+  const handleAddSource = async () => {
     if (!name.trim() || !url.trim()) {
       toast({
         title: "Error",
@@ -73,9 +73,17 @@ const DataSourcesSettings: React.FC = () => {
       title: "Data source added",
       description: `${name} has been added to your data sources.`,
     });
+    
+    // Refresh data to include the new source
+    toast({
+      title: "Refreshing data",
+      description: "Loading data from your new source...",
+    });
+    
+    await handleRefreshData();
   };
 
-  const handleDeleteSource = (id: string) => {
+  const handleDeleteSource = async (id: string) => {
     const updatedSources = dataSources.filter(source => source.id !== id);
     setDataSources(updatedSources);
     saveCustomDataSources(updatedSources);
@@ -84,15 +92,21 @@ const DataSourcesSettings: React.FC = () => {
       title: "Data source removed",
       description: "The data source has been removed.",
     });
+    
+    // Refresh data after removing a source
+    await handleRefreshData();
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     saveCustomDataSources(dataSources);
     
     toast({
       title: "Settings saved",
       description: "Your data source settings have been updated.",
     });
+    
+    // Refresh data after saving changes
+    await handleRefreshData();
   };
 
   const handleRefreshData = async () => {
