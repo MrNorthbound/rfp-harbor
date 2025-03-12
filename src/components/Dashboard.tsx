@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Clock, RefreshCw } from 'lucide-react';
+import { Clock, RefreshCw, ChevronDown } from 'lucide-react';
 import FilterBar from './FilterBar';
 import RfpCard from './RfpCard';
 import { Button } from '@/components/ui/button';
@@ -8,12 +7,32 @@ import { useToast } from '@/components/ui/use-toast';
 import { RFP } from '@/utils/types';
 import { fetchData } from '@/utils/dataFetcher';
 import { getRfps } from '@/utils/storage';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const categories = [
+  { name: 'ServiceNow', description: 'Monitor and track ServiceNow ecosystem procurement opportunities' },
+  { name: 'Salesforce', description: 'Track Salesforce platform and CRM procurement opportunities' },
+  { name: 'Atlassian', description: 'Discover Atlassian tools and solutions procurement opportunities' },
+  { name: 'Cloud', description: 'Explore cloud infrastructure and services procurement opportunities' },
+  { name: 'Cybersecurity', description: 'Find cybersecurity solutions and services procurement opportunities' },
+  { name: 'Data & Artificial Intelligence', description: 'Access data and AI-related procurement opportunities' },
+  { name: 'Human Capital Management', description: 'View HCM solutions procurement opportunities' },
+  { name: 'Internet of Things (IoT)', description: 'Browse IoT solutions procurement opportunities' },
+  { name: 'Machine Learning', description: 'Discover machine learning solutions procurement opportunities' },
+  { name: 'Managed Services', description: 'Explore managed services procurement opportunities' },
+];
 
 const Dashboard: React.FC = () => {
   const [rfps, setRfps] = useState<RFP[]>([]);
   const [filteredRfps, setFilteredRfps] = useState<RFP[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const { toast } = useToast();
 
   // Set up listener for storage events to detect data changes across tabs
@@ -91,9 +110,29 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight transition-all">ServiceNow RFP Dashboard</h1>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="p-0 font-bold text-3xl tracking-tight hover:no-underline flex items-center gap-2"
+              >
+                {selectedCategory.name} RFP Dashboard
+                <ChevronDown className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[220px]">
+              {categories.map((category) => (
+                <DropdownMenuItem
+                  key={category.name}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <p className="text-muted-foreground mt-1">
-            Monitor and track ServiceNow ecosystem procurement opportunities
+            {selectedCategory.description}
           </p>
         </div>
         <div className="flex items-center space-x-2">
