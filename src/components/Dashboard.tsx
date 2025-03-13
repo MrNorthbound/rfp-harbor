@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Clock, RefreshCw, ChevronDown } from 'lucide-react';
 import FilterBar from './FilterBar';
@@ -30,6 +31,7 @@ const categories = [
 const Dashboard: React.FC = () => {
   const [rfps, setRfps] = useState<RFP[]>([]);
   const [filteredRfps, setFilteredRfps] = useState<RFP[]>([]);
+  const [categoryFilteredRfps, setCategoryFilteredRfps] = useState<RFP[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
@@ -52,6 +54,11 @@ const Dashboard: React.FC = () => {
     loadData();
   }, []);
 
+  // Filter RFPs whenever the selected category changes
+  useEffect(() => {
+    filterRfpsByCategory(rfps);
+  }, [selectedCategory, rfps]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -60,18 +67,14 @@ const Dashboard: React.FC = () => {
       
       if (storedRfps.length > 0) {
         setRfps(storedRfps);
-        setFilteredRfps(storedRfps);
-        const timestamp = localStorage.getItem('rfp_last_updated');
-        if (timestamp) {
-          setLastUpdated(new Date(timestamp));
-        }
+        const now = new Date();
+        setLastUpdated(now);
         setIsLoading(false);
       }
       
       // Then fetch fresh data in the background
       const freshData = await fetchData();
       setRfps(freshData);
-      setFilteredRfps(freshData);
       const now = new Date();
       setLastUpdated(now);
       localStorage.setItem('rfp_last_updated', now.toISOString());
@@ -88,6 +91,34 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const filterRfpsByCategory = (rfpsToFilter: RFP[]) => {
+    // Filter RFPs based on selected category
+    const filtered = rfpsToFilter.filter(rfp => {
+      // Check if the RFP title, description, or tags contain the category name
+      const categoryName = selectedCategory.name.toLowerCase();
+      const titleMatch = rfp.title?.toLowerCase().includes(categoryName);
+      const descriptionMatch = rfp.description?.toLowerCase().includes(categoryName);
+      
+      // Check if any of the tags match or are related to the category
+      const tagsMatch = rfp.tags?.some(tag => {
+        return tag.toLowerCase().includes(categoryName) ||
+               // For broader categories, check related terms
+               (categoryName === 'cloud' && 
+                ['aws', 'azure', 'google cloud', 'cloud computing', 'saas', 'paas', 'iaas'].some(t => 
+                  tag.toLowerCase().includes(t))) ||
+               (categoryName === 'artificial intelligence' && 
+                ['ai', 'machine learning', 'neural network', 'deep learning'].some(t => 
+                  tag.toLowerCase().includes(t)));
+      });
+      
+      return titleMatch || descriptionMatch || tagsMatch;
+    });
+    
+    setCategoryFilteredRfps(filtered);
+    // Apply any existing search/filter criteria to the category-filtered RFPs
+    handleFilter(filtered);
+  };
+
   const handleRefresh = async () => {
     toast({
       title: "Refreshing data",
@@ -102,8 +133,18 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  const handleFilter = (filtered: RFP[]) => {
-    setFilteredRfps(filtered);
+  const handleFilter = (rfpsToFilter: RFP[]) => {
+    setFilteredRfps(rfpsToFilter);
+  };
+
+  const handleCategoryChange = (category: typeof categories[0]) => {
+    setSelectedCategory(category);
+    
+    // Show a toast to indicate category change
+    toast({
+      title: `${category.name} Dashboard`,
+      description: `Showing ${category.name} related procurement opportunities.`,
+    });
   };
 
   return (
@@ -124,7 +165,7 @@ const Dashboard: React.FC = () => {
               {categories.map((category) => (
                 <DropdownMenuItem
                   key={category.name}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => handleCategoryChange(category)}
                 >
                   {category.name}
                 </DropdownMenuItem>
@@ -155,7 +196,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <FilterBar rfps={rfps} onFilter={handleFilter} />
+      <FilterBar rfps={categoryFilteredRfps} onFilter={handleFilter} />
 
       <div className="grid grid-cols-1 gap-6 animate-fade-in">
         {isLoading ? (
@@ -179,8 +220,8 @@ const Dashboard: React.FC = () => {
           ))
         ) : (
           <div className="col-span-full text-center py-12">
-            <h3 className="text-lg font-medium">No matching RFPs found</h3>
-            <p className="text-muted-foreground mt-1">Try adjusting your filters or refreshing the data</p>
+            <h3 className="text-lg font-medium">No matching RFPs found for {selectedCategory.name}</h3>
+            <p className="text-muted-foreground mt-1">Try selecting a different category or refreshing the data</p>
             <Button variant="outline" className="mt-4" onClick={() => handleRefresh()}>
               <RefreshCw className="h-4 w-4 mr-2" /> Refresh Data
             </Button>
